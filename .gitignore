@@ -16,3 +16,4 @@
 bin/*
 image_name
 image_version
+.gopath
