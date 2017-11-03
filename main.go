@@ -212,8 +212,9 @@ func ApiHandler(rw http.ResponseWriter, r *http.Request) {
         json, err := json.Marshal(pizzas)
         if err != nil {
             log.Printf("Cannot encode to JSON ", err)
-            fmt.Fprintln(rw, "Cannot encode to JSON")
-            rw.WriteHeader(500)
+            http.Error(rw, "Cannot encode to JSON", http.StatusInternalServerError)
+            return
+        return
         } else { 
             log.Printf("Send json: ", string(json))
             fmt.Fprintln(rw, string(json))
@@ -223,8 +224,8 @@ func ApiHandler(rw http.ResponseWriter, r *http.Request) {
         json, err := json.Marshal(salads)
         if err != nil {
             log.Printf("Cannot encode to JSON ", err)
-            fmt.Fprintln(rw, "Cannot encode to JSON")
-            rw.WriteHeader(500)
+            http.Error(rw, "Cannot encode to JSON", http.StatusInternalServerError)
+            return
         } else { 
             log.Printf("Send json: ", string(json))
             fmt.Fprintln(rw, string(json))
@@ -234,19 +235,17 @@ func ApiHandler(rw http.ResponseWriter, r *http.Request) {
         json, err := json.Marshal(softdrinks)
         if err != nil {
             log.Printf("Cannot encode to JSON ", err)
-            fmt.Fprintln(rw, "Cannot encode to JSON")
-            rw.WriteHeader(500)
+            http.Error(rw, "Cannot encode to JSON", http.StatusInternalServerError)
+            return
         } else { 
             log.Printf("Send json: ", string(json))
             fmt.Fprintln(rw, string(json))
         }
     default:
         log.Printf("api not found")
-        fmt.Fprintln(rw, "api not found")
-        rw.WriteHeader(404)
+        http.Error(rw, "API not found", http.StatusNotFound)
+        return
     }
-
-    rw.WriteHeader(200)
 }
 
 func main() {
