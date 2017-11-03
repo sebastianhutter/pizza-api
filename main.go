@@ -195,8 +195,16 @@ func HomeHandler(rw http.ResponseWriter, r *http.Request) {
 
 func ApiHandler(rw http.ResponseWriter, r *http.Request) {
 
-    // @Todo Header based authentication
+    // check if an authorization token is set
+    // we accept any token (we just want to be compatible with the original pizza api)
+    // get the client address - this is either stored in x-forwarded-for or remoteaddr
+    if r.Header.Get("Authorization") == "" {
+        log.Printf("Unauthorized access")
+        http.Error(rw, "Authorization token invalid", http.StatusForbidden)
+        return
+    }
 
+    // get the api from the url and load the necessary data
     api := mux.Vars(r)["api"]
     switch api {
     case "pizzas":
