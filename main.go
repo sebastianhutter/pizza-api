@@ -190,6 +190,7 @@ func HomeHandler(rw http.ResponseWriter, r *http.Request, p httprouter.Params) {
     fmt.Fprintln(rw, "<a href=\"/api/softdrinks\">/api/softdrinks</a></br>")
     fmt.Fprintln(rw, "</body>")
     fmt.Fprintln(rw, "</html>")
+    rw.WriteHeader(200)
 }
 
 func ApiHandler(rw http.ResponseWriter, r *http.Request, p httprouter.Params) {
@@ -238,6 +239,8 @@ func ApiHandler(rw http.ResponseWriter, r *http.Request, p httprouter.Params) {
         fmt.Fprintln(rw, "api not found")
         rw.WriteHeader(404)
     }
+
+    rw.WriteHeader(200)
 }
 
 func main() {
