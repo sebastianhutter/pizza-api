@@ -10,9 +10,9 @@ COPY main.go /main.go
 COPY Makefile /Makefile
 
 # compile http-redirect
-RUN apk add --no-cache --update libc-dev make go tini ca-certificates \
+RUN apk add --no-cache --update libc-dev make git go tini ca-certificates \
   && make compile \
-  && apk del --purge libc-dev go \
+  && apk del --purge libc-dev go git \
   && mv /bin/pizza-api / \
   && rm /main.go \
   && rm /Makefile
