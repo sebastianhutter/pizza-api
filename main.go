@@ -197,7 +197,6 @@ func ApiHandler(rw http.ResponseWriter, r *http.Request) {
 
     // check if an authorization token is set
     // we accept any token (we just want to be compatible with the original pizza api)
-    // get the client address - this is either stored in x-forwarded-for or remoteaddr
     if r.Header.Get("Authorization") == "" {
         log.Printf("Unauthorized access")
         http.Error(rw, "Authorization token invalid", http.StatusForbidden)
