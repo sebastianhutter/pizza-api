@@ -5,10 +5,10 @@ import (
     "log"
     "net/http"
     "strconv"
-    "github.com/julienschmidt/httprouter"
-    "github.com/rs/cors"
     "fmt"
     "encoding/json"
+    "github.com/gorilla/mux"
+    "github.com/gorilla/handlers"
 )
 
 type Pizzas []Pizza
@@ -178,7 +178,7 @@ func createSoftdrinksItems() Softdrinks {
     return softdrinks
 }
 
-func HomeHandler(rw http.ResponseWriter, r *http.Request, p httprouter.Params) {
+func HomeHandler(rw http.ResponseWriter, r *http.Request) {
     // render a simple home page so people are not lost
     fmt.Fprintln(rw, "<!DOCTYPE html>")
     fmt.Fprintln(rw, "<html>")
@@ -193,13 +193,11 @@ func HomeHandler(rw http.ResponseWriter, r *http.Request, p httprouter.Params) {
     rw.WriteHeader(200)
 }
 
-func ApiHandler(rw http.ResponseWriter, r *http.Request, p httprouter.Params) {
-    // return a json object with all menu data depending on the api endpoint
+func ApiHandler(rw http.ResponseWriter, r *http.Request) {
 
     // @Todo Header based authentication
 
-    // get the api and start creating the array for the json output
-    api := p.ByName("api")
+    api := mux.Vars(r)["api"]
     switch api {
     case "pizzas":
         pizzas := createPizzaItems()
@@ -248,16 +246,14 @@ func main() {
     flag.Parse()
 
     // define routes
-    router := httprouter.New()
-    router.GET("/", HomeHandler)
-    router.GET("/api/:api", ApiHandler)
+    router := mux.NewRouter()
+    router.HandleFunc("/", HomeHandler)
+    router.HandleFunc("/api/{api}", ApiHandler)
 
-    // set cors
-    cors := cors.New(cors.Options{
-        AllowedOrigins: []string{"*", "null"},
-        AllowedMethods: []string{"GET", "OPTIONS"},
-        AllowCredentials: true,
-    })
-    handler := cors.Handler(router)
-    log.Fatal(http.ListenAndServe(":"+strconv.Itoa(*portPtr), handler))
+    // 2017-11-03: https://stackoverflow.com/questions/40985920/making-golang-gorilla-cors-handler-work
+    headersOk := handlers.AllowedHeaders([]string{"Authorization", "Content-Type"})
+    originsOk := handlers.AllowedOrigins([]string{"*"})
+    methodsOk := handlers.AllowedMethods([]string{"GET", "OPTIONS"})
+    // start the server
+    log.Fatal(http.ListenAndServe(":"+strconv.Itoa(*portPtr), handlers.CORS(originsOk, headersOk, methodsOk)(router)))
 }
