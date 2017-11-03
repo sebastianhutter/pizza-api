@@ -6,16 +6,16 @@ FROM alpine:3.6
 MAINTAINER Sebastian Hutter <mail@sebastian-hutter.ch>
 
 WORKDIR /
-COPY main.go /main.go
-COPY Makefile /Makefile
+COPY main.go /build/main.go
+COPY Makefile /build/Makefile
 
 # compile http-redirect
 RUN apk add --no-cache --update libc-dev make git go tini ca-certificates \
+  && cd /build \
   && make compile \
   && apk del --purge libc-dev go git \
-  && mv /bin/pizza-api / \
-  && rm /main.go \
-  && rm /Makefile
+  && mv /build/bin/pizza-api / \
+  && rm -rf /build
 
 EXPOSE 80
 ENTRYPOINT ["/sbin/tini", "--"]
