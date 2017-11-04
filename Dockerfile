@@ -13,7 +13,7 @@ COPY Makefile /build/Makefile
 RUN apk add --no-cache --update libc-dev make git go tini ca-certificates \
   && cd /build \
   && make compile \
-  && apk del --purge libc-dev go git \
+  && apk del --purge libc-dev go git make \
   && mv /build/bin/pizza-api / \
   && rm -rf /build
 
