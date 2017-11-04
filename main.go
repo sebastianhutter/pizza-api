@@ -204,46 +204,34 @@ func ApiHandler(rw http.ResponseWriter, r *http.Request) {
 
     // get the api from the url and load the necessary data
     api := mux.Vars(r)["api"]
+    var data []byte
+    var err error
     switch api {
-    case "pizzas":
-        pizzas := createPizzaItems()
-        json, err := json.Marshal(pizzas)
-        if err != nil {
-            log.Printf("Cannot encode to JSON ", err)
-            http.Error(rw, "Cannot encode to JSON", http.StatusInternalServerError)
+        case "pizzas":
+            pizzas := createPizzaItems()
+            data, err = json.Marshal(pizzas)
+        case "salads":
+            salads := createSaladItems()
+            data, err = json.Marshal(salads)
+        case "softdrinks":
+            softdrinks := createSoftdrinksItems()
+            data, err = json.Marshal(softdrinks)
+        default:
+            log.Printf("api not found")
+            http.Error(rw, "API not found", http.StatusNotFound)
             return
-        return
-        } else { 
-            log.Printf("Send json: ", string(json))
-            fmt.Fprintln(rw, string(json))
-        }
-    case "salads":
-        salads := createSaladItems()
-        json, err := json.Marshal(salads)
-        if err != nil {
-            log.Printf("Cannot encode to JSON ", err)
-            http.Error(rw, "Cannot encode to JSON", http.StatusInternalServerError)
-            return
-        } else { 
-            log.Printf("Send json: ", string(json))
-            fmt.Fprintln(rw, string(json))
-        }
-    case "softdrinks":
-        softdrinks := createSoftdrinksItems()
-        json, err := json.Marshal(softdrinks)
-        if err != nil {
-            log.Printf("Cannot encode to JSON ", err)
-            http.Error(rw, "Cannot encode to JSON", http.StatusInternalServerError)
-            return
-        } else { 
-            log.Printf("Send json: ", string(json))
-            fmt.Fprintln(rw, string(json))
-        }
-    default:
-        log.Printf("api not found")
-        http.Error(rw, "API not found", http.StatusNotFound)
+    }
+    // check if we have valid json
+     if err != nil {
+        log.Printf("Cannot encode to JSON ", err)
+        http.Error(rw, "Cannot encode to JSON", http.StatusInternalServerError)
         return
     }
+    // send data to the client
+    // 2017-11-04: http://www.alexedwards.net/blog/golang-response-snippets
+    log.Printf("Send JSON data for api %s: %s", api, string(data))
+    rw.Write(data)
+
 }
 
 func main() {
