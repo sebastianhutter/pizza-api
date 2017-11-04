@@ -5,7 +5,6 @@ import (
     "log"
     "net/http"
     "strconv"
-    "fmt"
     "encoding/json"
     "github.com/gorilla/mux"
     "github.com/gorilla/handlers"
@@ -180,21 +179,21 @@ func createSoftdrinksItems() Softdrinks {
 
 func HomeHandler(rw http.ResponseWriter, r *http.Request) {
     // render a simple home page so people are not lost
-    fmt.Fprintln(rw, "<!DOCTYPE html>")
-    fmt.Fprintln(rw, "<html>")
-    fmt.Fprintln(rw, "<body>")
-    fmt.Fprintln(rw, "Home</br>")
-    fmt.Fprintln(rw, "Please use one of the following endpoints</br>")
-    fmt.Fprintln(rw, "<a href=\"/api/pizzas\">/api/pizzas</a></br>")
-    fmt.Fprintln(rw, "<a href=\"/api/salads\">/api/salads</a></br>")
-    fmt.Fprintln(rw, "<a href=\"/api/softdrinks\">/api/softdrinks</a></br>")
-    fmt.Fprintln(rw, "</body>")
-    fmt.Fprintln(rw, "</html>")
-    rw.WriteHeader(200)
+    data := `
+    <!DOCTYPE html>
+    <html>
+    <body>
+    Home</br>
+    Please use one of the following endpoints</br>
+    <a href="/api/pizzas">/api/pizzas</a></br>
+    <a href="/api/salads">/api/salads</a></br>
+    <a href="/api/softdrinks">/api/softdrinks</a></br>
+    </body>
+    </html>`
+    rw.Write([]byte(data))
 }
 
 func ApiHandler(rw http.ResponseWriter, r *http.Request) {
-
     // check if an authorization token is set
     // we accept any token (we just want to be compatible with the original pizza api)
     if r.Header.Get("Authorization") == "" {
