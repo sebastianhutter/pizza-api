@@ -177,7 +177,22 @@ func createSoftdrinksItems() Softdrinks {
     return softdrinks
 }
 
+func getClientInfo(r *http.Request) (string, string) {
+    // return client information - remote address and user agent
+
+    client := r.Header.Get("X-FORWARDED-FOR")
+    if client == "" {
+        client = r.RemoteAddr
+    }
+    agent := r.Header.Get("USER-AGENT")
+
+    return client, agent
+}
+
 func HomeHandler(rw http.ResponseWriter, r *http.Request) {
+    client, agent := getClientInfo(r)
+    log.Printf("%s - %s - 200 - /\n", client, agent)
+
     // render a simple home page so people are not lost
     data := `
     <!DOCTYPE html>
@@ -194,18 +209,20 @@ func HomeHandler(rw http.ResponseWriter, r *http.Request) {
 }
 
 func ApiHandler(rw http.ResponseWriter, r *http.Request) {
+    // get the api from the url and load the necessary data
+    api := mux.Vars(r)["api"]
+    client, agent := getClientInfo(r)
+    var data []byte
+    var err error
+
     // check if an authorization token is set
     // we accept any token (we just want to be compatible with the original pizza api)
     if r.Header.Get("Authorization") == "" {
-        log.Printf("Unauthorized access")
+        log.Printf("%s - %s - %d - /%s - Authorization token invalid\n", client, agent, http.StatusForbidden, api)
         http.Error(rw, "Authorization token invalid", http.StatusForbidden)
         return
     }
 
-    // get the api from the url and load the necessary data
-    api := mux.Vars(r)["api"]
-    var data []byte
-    var err error
     switch api {
         case "pizzas":
             pizzas := createPizzaItems()
@@ -217,36 +234,40 @@ func ApiHandler(rw http.ResponseWriter, r *http.Request) {
             softdrinks := createSoftdrinksItems()
             data, err = json.Marshal(softdrinks)
         default:
-            log.Printf("api not found")
+            log.Printf("%s - %s - %d - /%s - API not found\n", client, agent, http.StatusNotFound, api)
             http.Error(rw, "API not found", http.StatusNotFound)
             return
     }
     // check if we have valid json
      if err != nil {
-        log.Printf("Cannot encode to JSON ", err)
+        log.Printf("%s - %s - %d - /%s - Cannot encode to JSON - %s\n", client, agent, api, http.StatusInternalServerError, err.Error())
         http.Error(rw, "Cannot encode to JSON", http.StatusInternalServerError)
         return
     }
     // send data to the client
     // 2017-11-04: http://www.alexedwards.net/blog/golang-response-snippets
-    log.Printf("Send JSON data for api %s: %s", api, string(data))
+    log.Printf("%s - %s - 200 - /%s\n", client, agent, api)
     rw.Write(data)
 
 }
 
 func main() {
+    log.Println("Starting Pizza API")
     portPtr := flag.Int("port", 80, "listen on port")
     flag.Parse()
 
     // define routes
+    log.Println("Initializing routes")
     router := mux.NewRouter()
     router.HandleFunc("/", HomeHandler)
     router.HandleFunc("/api/{api}", ApiHandler)
 
     // 2017-11-03: https://stackoverflow.com/questions/40985920/making-golang-gorilla-cors-handler-work
+    log.Println("Initializing CORS")
     headersOk := handlers.AllowedHeaders([]string{"Authorization", "Content-Type"})
     originsOk := handlers.AllowedOrigins([]string{"*"})
     methodsOk := handlers.AllowedMethods([]string{"GET", "OPTIONS"})
     // start the server
+    log.Printf("Starting http server on port %s\n",strconv.Itoa(*portPtr))
     log.Fatal(http.ListenAndServe(":"+strconv.Itoa(*portPtr), handlers.CORS(originsOk, headersOk, methodsOk)(router)))
 }
